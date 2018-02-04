@@ -2,21 +2,16 @@ package Ejemplo;
 
 import com.mongodb.*;
 import com.mongodb.MongoClient;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Projections;
-import com.mongodb.client.model.Filters;
 import static com.mongodb.client.model.Filters.*;
-import static com.mongodb.client.model.Projections.*;
-import com.mongodb.client.model.Sorts;
 import java.util.Arrays;
-
 import org.bson.Document;
 import java.util.Scanner;
 
 public class Main {
+
 
     private static Scanner sc=new Scanner(System.in);
     private static String username="msimon";
@@ -45,22 +40,15 @@ public class Main {
 
       String fecha=sc.nextLine();
 
-
-
-
       //Recuperar listado completo de nombres en formato JSON
       MongoCursor<Document> cursor=coll.find(and(
               eq("systemBankId",banco)
               ,eq("lastRequestStatusDetail.providerErrorCode",error.toUpperCase())
-              ,gte("dataUpdatedUntil",fecha)
-              ,fields(include("userId")))).iterator();
-
+              ,gte("dataUpdatedUntil",fecha))).iterator();
 
         try{
             while(cursor.hasNext()){
-                Document cur=(Document) cursor.next();
-
-                System.out.println(cur.toJson());
+                System.out.println(cursor.next().toJson());
             }
         }finally {
             cursor.close();
