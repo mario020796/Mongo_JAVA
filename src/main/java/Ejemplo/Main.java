@@ -6,6 +6,10 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import static com.mongodb.client.model.Filters.*;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import org.bson.Document;
 import java.util.Scanner;
@@ -14,11 +18,16 @@ public class Main {
 
 
     private static Scanner sc=new Scanner(System.in);
+
     private static String username;
     private static String collection;
     private static String password;
     private static String host;
     private static String table;
+    private static String bank;
+    private static String error;
+    private static String date;
+
 
     public static void main(String [] args){
         System.out.println("Introduzca su usuario");
@@ -44,33 +53,50 @@ public class Main {
 
         System.out.println("Introduzca su banco");
 
-        String banco=sc.nextLine();
+        bank=sc.nextLine();
 
         System.out.println("Introduzca el error que desea buscar");
 
-        String error=sc.nextLine();
+        error=sc.nextLine();
 
         System.out.println("Introduzca la fecha a partir de la que desea buscar (incluida) Formato: YYYY-MM-DD");
 
-        String fecha=sc.nextLine();
+        date=sc.nextLine();
 
         //Recuperar listado completo de nombres en formato JSON
         MongoCursor<Document> cursor=coll.find(and(
-                 eq("systemBankId",banco)
+                 eq("systemBankId",bank)
                  ,eq("lastRequestStatusDetail.providerErrorCode",error.toUpperCase())
-                 ,gte("dataUpdatedUntil",fecha))).iterator();
+                 ,gte("dataUpdatedUntil",date))).iterator();
 
-        System.out.println("userId"+"\t"+"dataUpdatedUntil");
+        FileWriter fichero=null;
+        PrintWriter pw=null;
 
-        try{
-            while(cursor.hasNext()){
-                System.out.println(cursor.next().get("userId")+"\t"+cursor.next().get("dataUpdatedUntil"));
+        String ruta;
+        System.out.println("Introduzca la ruta donde desea guardar el fichero:");
+        ruta=sc.nextLine();
+
+        try {
+            fichero=new FileWriter(ruta+"/"+bank+"-"+error.toUpperCase()+"-"+date+".csv");
+            pw=new PrintWriter(fichero);
+            try{
+                while(cursor.hasNext()){
+                    pw.println(cursor.next().get("userId"));
                 }
             }finally {
                 cursor.close();
             }
-
-
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            if(fichero!=null){
+                try {
+                    fichero.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
         client.close();
     }
 }
