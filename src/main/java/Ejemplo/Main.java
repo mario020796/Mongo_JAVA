@@ -14,47 +14,63 @@ public class Main {
 
 
     private static Scanner sc=new Scanner(System.in);
-    private static String username="msimon";
-    private static String collection="business";
-    private static String password="QnUUqbvOrN/ZXQc1x";
+    private static String username;
+    private static String collection;
+    private static String password;
+    private static String host;
+    private static String table;
 
     public static void main(String [] args){
+        System.out.println("Introduzca su usuario");
+        username=sc.nextLine();
+        System.out.println("Introduzca la colección que desee visualizar");
+        collection=sc.nextLine();
+        System.out.println("Introduzca su contraseña");
+        password=sc.nextLine();
 
-      MongoCredential credenciales=MongoCredential.createCredential(username,collection,password.toCharArray());
+        MongoCredential credenciales=MongoCredential.createCredential(username,collection,password.toCharArray());
 
-      MongoClient client=new MongoClient(new ServerAddress("10.0.101.195",27017), Arrays.asList(credenciales));
+        System.out.println("Introduzca el host");
+        host=sc.nextLine();
 
-      MongoDatabase database=client.getDatabase("business");
+        MongoClient client=new MongoClient(new ServerAddress(host,27017), Arrays.asList(credenciales));
 
-      MongoCollection<Document> coll=database.getCollection("bankRegistry");
+        MongoDatabase database=client.getDatabase(collection);
 
-      System.out.println("Introduzca su banco");
+        System.out.println("Introduzca la tabla a consultar");
+        table=sc.nextLine();
 
-      String banco=sc.nextLine();
+        MongoCollection<Document> coll=database.getCollection(table);
 
-      System.out.println("Introduzca el error que desea buscar");
+        System.out.println("Introduzca su banco");
 
-      String error=sc.nextLine();
+        String banco=sc.nextLine();
 
-      System.out.println("Introduzca la fecha a partir de la que desea buscar (incluida) Formato: YYYY-MM-DD");
+        System.out.println("Introduzca el error que desea buscar");
 
-      String fecha=sc.nextLine();
+        String error=sc.nextLine();
 
-      //Recuperar listado completo de nombres en formato JSON
-      MongoCursor<Document> cursor=coll.find(and(
-              eq("systemBankId",banco)
-              ,eq("lastRequestStatusDetail.providerErrorCode",error.toUpperCase())
-              ,gte("dataUpdatedUntil",fecha))).iterator();
+        System.out.println("Introduzca la fecha a partir de la que desea buscar (incluida) Formato: YYYY-MM-DD");
+
+        String fecha=sc.nextLine();
+
+        //Recuperar listado completo de nombres en formato JSON
+        MongoCursor<Document> cursor=coll.find(and(
+                 eq("systemBankId",banco)
+                 ,eq("lastRequestStatusDetail.providerErrorCode",error.toUpperCase())
+                 ,gte("dataUpdatedUntil",fecha))).iterator();
+
+        System.out.println("userId"+"\t"+"dataUpdatedUntil");
 
         try{
             while(cursor.hasNext()){
-                System.out.println(cursor.next().toJson());
+                System.out.println(cursor.next().get("userId")+"\t"+cursor.next().get("dataUpdatedUntil"));
+                }
+            }finally {
+                cursor.close();
             }
-        }finally {
-            cursor.close();
-        }
 
 
-      client.close();
+        client.close();
     }
 }
